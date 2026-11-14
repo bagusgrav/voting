@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Thortech Voting - Auditability Tool",
   description:
     "Sistem pemungutan suara eksperimental dengan auditabilitas independen dalam ekosistem Thortech.",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({

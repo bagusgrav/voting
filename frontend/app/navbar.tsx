@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Logo from "./logo";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -21,10 +22,8 @@ export default function Navbar() {
           href="/"
           className="flex items-center gap-2.5 text-xl font-bold tracking-tight text-orange-600 transition hover:text-orange-700"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-600 text-sm font-extrabold text-white shadow-sm">
-            T
-          </span>
-          <span>Thortech Voting</span>
+          <Logo className="shadow-sm rounded-lg" />
+          <span className="font-bold text-orange-600">Thortech Voting</span>
         </Link>
         <div className="flex items-center gap-2">
           {navLinks.map((link) => {
