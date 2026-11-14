@@ -1,24 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import { fetchWithRetry } from "@/utils/api";
 
 type Feedback = {
-  type: "success" | "error";
+  type: "success" | "warning" | "error";
   message: string;
 };
 
 export default function Home() {
   const [candidate, setCandidate] = useState("A");
   const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   async function submitVote(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFeedback(null);
-    setIsSubmitting(true);
+    setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3000/submit_vote", {
+      const response = await fetchWithRetry("http://localhost:3000/submit_vote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -28,9 +29,14 @@ export default function Home() {
         }),
       });
 
-      const result: { error?: string } = await response.json();
+      const result: { error?: string; status?: string } = await response.json();
       if (!response.ok) {
         throw new Error(result.error ?? "Suara gagal dikirim.");
+      }
+
+      if (result.status === "already_voted") {
+        setFeedback({ type: "warning", message: "Anda sudah memilih!" });
+        return;
       }
 
       setFeedback({ type: "success", message: "Suara berhasil dikirim." });
@@ -43,7 +49,7 @@ export default function Home() {
             : "Tidak dapat menghubungi server voting.",
       });
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   }
 
@@ -98,10 +104,10 @@ export default function Home() {
 
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isLoading}
               className="mt-5 w-full rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-teal-800 disabled:cursor-wait disabled:opacity-60"
             >
-              {isSubmitting ? "Mengirim..." : "Kirim Suara (Submit Vote)"}
+              {isLoading ? "Menghubungkan..." : "Kirim Suara (Submit Vote)"}
             </button>
           </form>
 
@@ -112,7 +118,9 @@ export default function Home() {
               className={`mt-5 rounded-xl px-4 py-3 text-sm ${
                 feedback.type === "success"
                   ? "bg-emerald-50 text-emerald-800"
-                  : "bg-rose-50 text-rose-800"
+                  : feedback.type === "warning"
+                    ? "bg-amber-50 text-amber-800"
+                    : "bg-rose-50 text-rose-800"
               }`}
             >
               {feedback.message}

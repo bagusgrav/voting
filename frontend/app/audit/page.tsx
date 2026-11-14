@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { fetchWithRetry } from "@/utils/api";
 
 type VoteRecord = {
   id: number;
@@ -33,7 +34,7 @@ export default function AuditPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3000/results");
+      const response = await fetchWithRetry("http://localhost:3000/results");
       if (!response.ok) {
         throw new Error(`Audit gagal dijalankan (HTTP ${response.status}).`);
       }
@@ -75,7 +76,7 @@ export default function AuditPage() {
           disabled={isLoading}
           className="mt-8 rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-teal-800 disabled:cursor-wait disabled:opacity-60"
         >
-          {isLoading ? "Mengambil hasil..." : "Jalankan Audit (Fetch Results)"}
+          {isLoading ? "Memproses..." : "Jalankan Audit (Fetch Results)"}
         </button>
 
         {error && (
