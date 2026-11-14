@@ -69,7 +69,7 @@ export default function Home() {
           </p>
           <div className="mt-10 flex items-center gap-3 text-sm text-slate-500">
             <span className="size-2 rounded-full bg-teal-500" />
-            <span>Backend lokal · localhost:3000</span>
+            <span>{process.env.NEXT_PUBLIC_API_URL || "localhost:3000"}</span>
           </div>
         </section>
 
