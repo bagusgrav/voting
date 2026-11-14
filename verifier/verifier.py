@@ -1,10 +1,15 @@
+import os
 import sys
 from collections import Counter
 
 import requests
 
 
-RESULTS_URL = "http://localhost:3000/results"
+RESULTS_URL = (
+    sys.argv[1]
+    if len(sys.argv) > 1
+    else os.getenv("TARGET_URL") or "http://localhost:3000/results"
+)
 
 
 def fetch_votes():
