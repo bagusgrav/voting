@@ -3,12 +3,13 @@ pub mod db;
 use axum::{
     Json, Router,
     extract::State,
-    http::StatusCode,
+    http::{Method, StatusCode},
     response::IntoResponse,
     routing::{get, post},
 };
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
+use tower_http::cors::{Any, CorsLayer};
 
 #[derive(Debug, Deserialize)]
 struct SubmitVote {
@@ -36,9 +37,15 @@ struct ApiError {
 }
 
 pub fn app(pool: SqlitePool) -> Router {
+    let cors = CorsLayer::new()
+        .allow_origin(Any) // Mengizinkan semua origin (termasuk Vercel)
+        .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
+        .allow_headers(Any);
+
     Router::new()
         .route("/submit_vote", post(submit_vote))
         .route("/results", get(results))
+        .layer(cors)
         .with_state(pool)
 }
 

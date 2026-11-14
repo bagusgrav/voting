@@ -74,3 +74,46 @@ async fn submit(app: &axum::Router, payload: Value) -> (StatusCode, Value) {
         serde_json::from_slice(&body).expect("response should be JSON"),
     )
 }
+
+#[tokio::test]
+async fn cors_preflight_and_headers() {
+    let pool = SqlitePoolOptions::new()
+        .max_connections(1)
+        .connect("sqlite::memory:")
+        .await
+        .expect("in-memory database should connect");
+    initialize_schema(&pool)
+        .await
+        .expect("votes table should be created");
+    let app = app(pool);
+
+    let preflight = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("OPTIONS")
+                .uri("/submit_vote")
+                .header("origin", "https://voting.thortech.shop")
+                .header("access-control-request-method", "POST")
+                .header("access-control-request-headers", "content-type")
+                .body(Body::empty())
+                .expect("request should be valid"),
+        )
+        .await
+        .expect("router should handle the request");
+
+    assert_eq!(preflight.status(), StatusCode::OK);
+    assert_eq!(
+        preflight.headers().get("access-control-allow-origin").unwrap(),
+        "*"
+    );
+    assert!(
+        preflight
+            .headers()
+            .get("access-control-allow-methods")
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .contains("POST")
+    );
+}
