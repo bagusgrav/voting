@@ -34,7 +34,8 @@ export default function AuditPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetchWithRetry("http://localhost:3000/results");
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+      const response = await fetchWithRetry(`${apiUrl}/results`);
       if (!response.ok) {
         throw new Error(`Audit gagal dijalankan (HTTP ${response.status}).`);
       }

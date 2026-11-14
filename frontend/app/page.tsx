@@ -19,7 +19,8 @@ export default function Home() {
     setIsLoading(true);
 
     try {
-      const response = await fetchWithRetry("http://localhost:3000/submit_vote", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+      const response = await fetchWithRetry(`${apiUrl}/submit_vote`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
