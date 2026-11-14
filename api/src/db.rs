@@ -1,12 +1,17 @@
 use sqlx::{
     SqlitePool,
-    sqlite::{SqliteConnectOptions, SqlitePoolOptions},
+    sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, SqliteSynchronous},
 };
+use std::time::Duration;
 
-pub async fn init_db(database_path: &str) -> Result<SqlitePool, sqlx::Error> {
+pub async fn init_db() -> Result<SqlitePool, sqlx::Error> {
     let options = SqliteConnectOptions::new()
-        .filename(database_path)
-        .create_if_missing(true);
+        .filename("/var/data/voting/central.sqlite")
+        .create_if_missing(true)
+        .journal_mode(SqliteJournalMode::Wal)
+        .synchronous(SqliteSynchronous::Normal)
+        .busy_timeout(Duration::from_millis(5000))
+        .foreign_keys(true);
     let pool = SqlitePoolOptions::new().connect_with(options).await?;
 
     initialize_schema(&pool).await?;

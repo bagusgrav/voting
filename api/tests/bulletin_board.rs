@@ -8,7 +8,7 @@ use sqlx::sqlite::SqlitePoolOptions;
 use tower::ServiceExt;
 
 #[tokio::test]
-async fn rejects_a_nullifier_that_has_already_voted() {
+async fn duplicate_vote_returns_already_voted_without_recording_another_vote() {
     let pool = SqlitePoolOptions::new()
         .max_connections(1)
         .connect("sqlite::memory:")
@@ -29,8 +29,27 @@ async fn rejects_a_nullifier_that_has_already_voted() {
     assert_eq!(first.1, json!({"status": "Vote recorded"}));
 
     let second = submit(&app, payload).await;
-    assert_eq!(second.0, StatusCode::BAD_REQUEST);
-    assert_eq!(second.1, json!({"error": "Double voting detected"}));
+    assert_eq!(second.0, StatusCode::OK);
+    assert_eq!(second.1, json!({"status": "already_voted"}));
+
+    let votes = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .uri("/results")
+                .body(Body::empty())
+                .expect("request should be valid"),
+        )
+        .await
+        .expect("router should handle the request");
+    let body = to_bytes(votes.into_body(), usize::MAX)
+        .await
+        .expect("response body should be readable");
+    let votes: Value = serde_json::from_slice(&body).expect("response should be JSON");
+    assert_eq!(
+        votes.as_array().expect("results should be an array").len(),
+        1
+    );
 }
 
 async fn submit(app: &axum::Router, payload: Value) -> (StatusCode, Value) {

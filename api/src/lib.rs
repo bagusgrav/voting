@@ -68,9 +68,9 @@ async fn submit_vote(
                 .is_some_and(|db| db.is_unique_violation()) =>
         {
             (
-                StatusCode::BAD_REQUEST,
-                Json(ApiError {
-                    error: "Double voting detected",
+                StatusCode::OK,
+                Json(ApiMessage {
+                    status: "already_voted",
                 }),
             )
                 .into_response()

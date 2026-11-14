@@ -5,7 +5,7 @@ use tower_http::cors::CorsLayer;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let pool = db::init_db("bulletin_board.db").await?;
+    let pool = db::init_db().await?;
     let port = std::env::var("PORT")
         .unwrap_or_else(|_| "3000".to_owned())
         .parse::<u16>()?;
